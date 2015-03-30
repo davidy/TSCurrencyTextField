@@ -43,6 +43,7 @@
 
 - (void) TSCurrencyTextField_commonInit
 {
+    _maximumLength = 0;
     _invalidInputCharacterSet = [[NSCharacterSet decimalDigitCharacterSet] invertedSet];
 
     _currencyNumberFormatter = [[NSNumberFormatter alloc] init];
@@ -53,7 +54,8 @@
     _currencyTextFieldDelegate = [TSCurrencyTextFieldDelegate new];
     [super setDelegate: _currencyTextFieldDelegate];
     
-    [self setText: @"0"];
+    //[self setText: @"0"];
+    //[self setText: @"Cash Tips"];
 }
 
 - (void) setCaratPosition: (NSInteger) pos
@@ -143,6 +145,31 @@
     return nil;
 }
 
+//- (BOOL) textField: (TSCurrencyTextField *) textField shouldChangeCharactersInRange: (NSRange) range replacementString: (NSString *) string
+//{
+//    // "deleting" a formatting character just back-spaces over that character:
+//    if ( string.length == 0 && range.length == 1 && [[textField invalidInputCharacterSet] characterIsMember: [textField.text characterAtIndex: range.location]] )
+//    {
+//        [textField setCaratPosition: range.location];
+//        return NO;
+//    }
+//    
+//    int distanceFromEnd = textField.text.length - (range.location + range.length);
+//    
+//    NSString* changed = [textField.text stringByReplacingCharactersInRange: range withString: string];
+//    [textField setText: changed];
+//    
+//    int pos = textField.text.length - distanceFromEnd;
+//    if ( pos >= 0 && pos <= textField.text.length )
+//    {
+//        [textField setCaratPosition: pos];
+//    }
+//    
+//    [textField sendActionsForControlEvents: UIControlEventEditingChanged];
+//    
+//    return NO;
+//}
+
 - (BOOL) textField: (TSCurrencyTextField *) textField shouldChangeCharactersInRange: (NSRange) range replacementString: (NSString *) string
 {
     // "deleting" a formatting character just back-spaces over that character:
@@ -155,7 +182,16 @@
     int distanceFromEnd = textField.text.length - (range.location + range.length);
     
     NSString* changed = [textField.text stringByReplacingCharactersInRange: range withString: string];
-    [textField setText: changed];
+    if (textField.maximumLength > 0 && changed.length > textField.maximumLength)
+        return NO;
+    
+    if ([self.delegate respondsToSelector:@selector(textField:shouldChangeCharactersInRange:replacementString:)])
+    {
+        if ([self.delegate textField:textField shouldChangeCharactersInRange:range replacementString:string])
+            [textField setText:changed];
+    }
+    else
+        [textField setText:changed];
     
     int pos = textField.text.length - distanceFromEnd;
     if ( pos >= 0 && pos <= textField.text.length )
@@ -167,5 +203,4 @@
     
     return NO;
 }
-
 @end
